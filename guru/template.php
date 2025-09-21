@@ -69,6 +69,18 @@ if (!isset($title)) $title = "Dashboard Guru";
                                 <p>Daftar Jurnal Saya</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="input_nilai.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'input_nilai.php' ? 'active' : '' ?>">
+                                <i class="nav-icon fas fa-graduation-cap"></i>
+                                <p>Input Nilai Siswa</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="daftar_nilai.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'daftar_nilai.php' ? 'active' : '' ?>">
+                                <i class="nav-icon fas fa-list-ol"></i>
+                                <p>Daftar Nilai Saya</p>
+                            </a>
+                        </li>
                     </ul>
                 </nav>
             </div>
@@ -137,6 +149,18 @@ if (!isset($title)) $title = "Dashboard Guru";
                 $('#theme-icon').removeClass('fa-sun').addClass('fa-moon');
             }
         });
+
+        // Agar fungsi selectAllHadir & selectAllAlfa selalu tersedia untuk AJAX absensi
+        function selectAllHadir() {
+            document.querySelectorAll("#daftar_siswa .absen-select").forEach(select => {
+                select.value = "H";
+            });
+        }
+        function selectAllAlfa() {
+            document.querySelectorAll("#daftar_siswa .absen-select").forEach(select => {
+                select.value = "A";
+            });
+        }
     </script>
 </body>
 </html>
