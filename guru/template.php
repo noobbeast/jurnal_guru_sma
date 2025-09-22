@@ -81,6 +81,12 @@ if (!isset($title)) $title = "Dashboard Guru";
                                 <p>Daftar Nilai Saya</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="rekap_nilai_akhir.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'rekap_nilai_akhir.php' ? 'active' : '' ?>">
+                                <i class="nav-icon fas fa-chart-line"></i>
+                                <p>Rekap Nilai Akhir</p>
+                            </a>
+                        </li>
                     </ul>
                 </nav>
             </div>
