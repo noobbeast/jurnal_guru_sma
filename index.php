@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ WAJIB ADA! -->
     <title>Login - Jurnal Mengajar SMA</title>
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="assets/img/favicon.png">
     <style>
         /* Divider style seperti MDB */
         .divider:after,
@@ -115,30 +116,60 @@
         .alert:hover {
             transform: translateX(5px);
         }
+
+        /* Responsive improvement */
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+        .form-control {
+            font-size: 1rem;
+            padding: 0.5rem;
+        }
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 1rem;
+            }
+            .divider {
+                margin: 1.5rem 0;
+            }
+            .logo-sekolah {
+                max-width: 80px;
+                margin-bottom: 1rem;
+            }
+            .card-title, h3, h4 {
+                font-size: 1.1rem !important;
+            }
+            .vh-100, .h-custom {
+                height: auto !important;
+                min-height: 100vh;
+            }
+            .footer {
+                font-size: 0.9rem;
+                padding: 0.5rem 1rem;
+            }
+        }
     </style>
 </head>
 <body>
     <section class="vh-100">
         <div class="container-fluid h-custom">
             <div class="row d-flex justify-content-center align-items-center h-100">
-                <div class="col-md-9 col-lg-6 col-xl-5">
+                <div class="col-md-9 col-lg-6 col-xl-5 d-none d-md-block">
                     <img src="./assets/logo/cok.png"
                         class="img-fluid" alt="Ilustrasi Login">
                 </div>
-                <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
+                <div class="col-12 col-md-8 col-lg-6 col-xl-4 offset-xl-1">
                     <!-- Logo Sekolah -->
                     <div class="text-center mb-4">
                         <img src="assets/logo/logo.png" 
                              alt="Logo Sekolah" 
-                             class="logo-sekolah rounded-circle border border-3 border-white shadow">
-               
-                                <h3 class="mt-3 fw-bold mb-0">JURNAL MENGAJAR</h3>
-                                <h4 class="mt-3 fw-bold mb-0">SMAN 1 SUKAPURA</h4>
-                            </div>
+                             class="logo-sekolah rounded-circle border border-3 border-white shadow mx-auto d-block">
+                        <h3 class="mt-3 fw-bold mb-0">JURNAL MENGAJAR</h3>
+                        <h4 class="mt-3 fw-bold mb-0">SMAN 1 SUKAPURA</h4>
+                    </div>
 
                     <form action="login.php" method="POST">
-                      
-
                         <!-- Email input -->
                         <div class="form-outline mb-4">
                             <input type="email" name="email" id="form3Example3" class="form-control form-control-lg"
@@ -154,22 +185,22 @@
                         </div>
 
                         <!-- Remember me & Forgot password -->
-                        <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4 gap-2">
                             <div class="form-check">
                                 <input class="form-check-input me-2" type="checkbox" value="" id="form2Example3" />
                                 <label class="form-check-label" for="form2Example3">
                                     Ingat saya
                                 </label>
                             </div>
-                            <a href="#!" class="text-primary">Lupa password?</a>
+                            <a href="#!" class="text-primary small">Lupa password?</a>
                         </div>
 
                         <!-- Submit button -->
                         <div class="text-center text-lg-start">
-                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 w-100">
                                 Login
                             </button>
-                            <p class="small fw-bold mt-2 pt-1 mb-0">
+                            <p class="small fw-bold mt-2 pt-1 mb-0 text-center">
                                 Belum punya akun? 
                                 <a href="#!" class="text-danger">Daftar</a>
                             </p>
@@ -186,7 +217,7 @@
         </div>
 
         <!-- Footer -->
-        <footer class="bg-primary text-white d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-3 px-4 px-xl-5">
+        <footer class="bg-primary text-white d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-3 px-4 px-xl-5 footer">
             <div class="mb-3 mb-md-0">
                 Copyright © 2025 ICT-SMAN 1 SUKAPURA. All rights reserved.
             </div>
