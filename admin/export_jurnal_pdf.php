@@ -125,9 +125,9 @@ $pdf->Ln(3);
 $pdf->SetFont('freeserif', 'B', 10);
 $pdf->SetFillColor(230, 230, 230);
 
-$header = ['Tanggal', 'Jam ke-', 'Guru', 'Kelas', 'Mapel', 'Materi'];
+$header = ['Tanggal', 'Jam ke-', 'Guru', 'Kelas', 'Mapel', 'Materi', ];
 // Total lebar A4 portrait efektif: 210mm - 15*2 = 180mm
-$w = [25, 15, 35, 25, 30, 50]; // Total: 180mm, pas untuk A4 portrait
+$w = [38, 15, 35, 19, 30, 50, 25,]; // Total: 180mm, pas untuk A4 portrait
 
 // Header tabel
 for ($i = 0; $i < count($header); $i++) {
