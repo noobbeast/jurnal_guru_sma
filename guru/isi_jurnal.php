@@ -26,7 +26,12 @@ ob_start();
             <div class="form-group mb-3">
                 <label>Tanggal</label>
                 <input type="date" name="tanggal" class="form-control" required>
-            </div>
+     </div>
+            <div class="mb-3">
+                <label>Jam ke-</label>
+                <input type="number" name="jam_ke" class="form-control" min="1" max="10" placeholder="Contoh: 1, 2, 3...">
+                <small class="text-muted">Opsional. Isi jika ingin mencatat urutan jam pelajaran.</small>
+                </div>
             <div class="form-group mb-3">
                 <label>Kelas & Mapel</label>
                 <select name="gmk_id" class="form-control" required onchange="loadSiswa(this.value)">

@@ -127,8 +127,8 @@ $pdf->Ln(3);
 $pdf->SetFont('freeserif', 'B', 10);
 $pdf->SetFillColor(230, 230, 230);
 
-$header = ['Tanggal', 'Guru', 'Kelas', 'Mapel', 'Materi'];
-$w = [40, 35, 30, 30, 55];
+$header = ['Tanggal', 'Jam ke-', 'Guru', 'Kelas', 'Mapel', 'Materi'];
+$w = [35, 15, 35, 30, 30, 45]; // Sesuaikan lebar
 
 // Header tabel
 for ($i = 0; $i < count($header); $i++) {
@@ -140,6 +140,7 @@ $pdf->Ln();
 $pdf->SetFont('freeserif', '', 9);
 foreach ($jurnal_list as $jurnal) {
     $pdf->Cell($w[0], 6, format_tanggal_indonesia($jurnal['tanggal']), 1);
+    $pdf->Cell($w[1], 6, $jurnal['jam_ke'] ? $jurnal['jam_ke'] : '-', 1);
     $pdf->Cell($w[1], 6, $jurnal['nama_guru'], 1);
     $pdf->Cell($w[2], 6, $jurnal['nama_kelas'], 1);
     $pdf->Cell($w[3], 6, $jurnal['nama_mapel'], 1);

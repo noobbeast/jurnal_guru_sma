@@ -150,14 +150,16 @@ $content .= '
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped">
                             <thead>
-                                <tr>
-                                    <th>Tanggal</th>
-                                    <th>Guru</th>
-                                    <th>Kelas</th>
-                                    <th>Mapel</th>
-                                    <th>Materi</th>
-                                    <th>Aksi</th>
-                                </tr>
+                                    <tr>
+                            <th>Tanggal</th>
+                            <th>Jam ke-</th> <!-- Kolom baru -->
+                            <th>Guru</th>
+                            <th>Kelas</th>
+                            <th>Mapel</th>
+                            <th>Materi</th>
+                            <th>Aksi</th>
+                             </tr>
+                        </thead>
                             </thead>
                             <tbody>
         ';
@@ -167,6 +169,7 @@ if (count($jurnal_list) > 0) {
         $content .= '
                                 <tr>
                                     <td>' . format_tanggal_indonesia($jurnal['tanggal']) . '</td>
+                                    <td>' . ($jurnal['jam_ke'] ? $jurnal['jam_ke'] : '-') . '</td>
                                     <td>' . htmlspecialchars($jurnal['nama_guru']) . '</td>
                                     <td>' . htmlspecialchars($jurnal['nama_kelas']) . '</td>
                                     <td>' . htmlspecialchars($jurnal['nama_mapel']) . '</td>

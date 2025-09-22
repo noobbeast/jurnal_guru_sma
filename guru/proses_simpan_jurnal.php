@@ -32,26 +32,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Simpan ke tabel jurnal
-    $sql = "INSERT INTO jurnal (tanggal, guru_id, kelas_id, mapel_id, materi, catatan, 
-            kegiatan_pendahuluan, kegiatan_inti, kegiatan_penutup, foto_kegiatan) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $pendahuluan = in_array('pendahuluan', $kegiatan) ? 1 : 0;
-    $inti = in_array('inti', $kegiatan) ? 1 : 0;
-    $penutup = in_array('penutup', $kegiatan) ? 1 : 0;
+    // Ambil jam_ke (opsional)
+    $jam_ke = !empty($_POST['jam_ke']) ? (int)$_POST['jam_ke'] : null;
 
+    // Simpan ke tabel jurnal — SUDAH DITAMBAH kolom jam_ke
+    $sql = "INSERT INTO jurnal (tanggal, jam_ke, guru_id, kelas_id, mapel_id, materi, catatan, 
+        kegiatan_pendahuluan, kegiatan_inti, kegiatan_penutup, foto_kegiatan) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
     $stmt->execute([
-        $tanggal, 
-        $_SESSION['guru_id'], 
-        $kelas_id, 
-        $mapel_id, 
-        $materi, 
-        $catatan, 
-        $pendahuluan, 
-        $inti, 
-        $penutup,
-        $foto_kegiatan
-    ]);
+    $tanggal, 
+    $jam_ke, 
+    $_SESSION['guru_id'], 
+    $kelas_id, 
+    $mapel_id, 
+    $materi, 
+    $catatan, 
+    $pendahuluan, 
+    $inti, 
+    $penutup,
+    $foto_kegiatan
+]);
     $jurnal_id = $conn->lastInsertId();
 
     // Simpan absensi — versi lengkap dengan status
