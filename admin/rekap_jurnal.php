@@ -79,7 +79,8 @@ $stmt = $conn->prepare($sql);
 $stmt->execute($params);
 $jurnal_list = $stmt->fetchAll();
 
-$content = '
+ob_start();
+?>
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -93,54 +94,47 @@ $content = '
                             <label class="form-label">Kelas</label>
                             <select name="kelas_id" class="form-control">
                                 <option value="">Semua Kelas</option>
-        ';
-
-foreach ($kelas_options as $kelas) {
-    $selected = ($kelas['id'] == $filter_kelas) ? 'selected' : '';
-    $content .= '<option value="' . $kelas['id'] . '" ' . $selected . '>' . htmlspecialchars($kelas['nama_kelas']) . '</option>';
-}
-
-$content .= '
+                                <?php foreach ($kelas_options as $kelas): ?>
+                                    <option value="<?= $kelas['id'] ?>" <?= ($kelas['id'] == $filter_kelas) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($kelas['nama_kelas']) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Guru</label>
                             <select name="guru_id" class="form-control">
                                 <option value="">Semua Guru</option>
-        ';
-
-foreach ($guru_options as $guru) {
-    $selected = ($guru['id'] == $filter_guru) ? 'selected' : '';
-    $content .= '<option value="' . $guru['id'] . '" ' . $selected . '>' . htmlspecialchars($guru['nama']) . '</option>';
-}
-
-$content .= '
+                                <?php foreach ($guru_options as $guru): ?>
+                                    <option value="<?= $guru['id'] ?>" <?= ($guru['id'] == $filter_guru) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($guru['nama']) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Mapel</label>
                             <select name="mapel_id" class="form-control">
                                 <option value="">Semua Mapel</option>
-        ';
-
-foreach ($mapel_options as $mapel) {
-    $selected = ($mapel['id'] == $filter_mapel) ? 'selected' : '';
-    $content .= '<option value="' . $mapel['id'] . '" ' . $selected . '>' . htmlspecialchars($mapel['nama_mapel']) . '</option>';
-}
-
-$content .= '
+                                <?php foreach ($mapel_options as $mapel): ?>
+                                    <option value="<?= $mapel['id'] ?>" <?= ($mapel['id'] == $filter_mapel) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($mapel['nama_mapel']) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Bulan</label>
-                            <input type="month" name="bulan" class="form-control" value="' . $filter_bulan . '">
-                        </div>
-                        <div class="col-md-12">
-                            <button type="submit" class="btn btn-primary">Filter</button>
-                            <a href="rekap_jurnal.php" class="btn btn-secondary">Reset</a>
+                            <input type="month" name="bulan" class="form-control" value="<?= htmlspecialchars($filter_bulan) ?>">
                         </div>
                         <div class="col-md-12 mt-2">
-                            <a href="export_jurnal_pdf.php' . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : '') . '" 
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="rekap_jurnal.php" class="btn btn-secondary">Reset</a>
+                            <a href="export_jurnal_excel.php<?= $_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : '' ?>" 
+                               class="btn btn-success" target="_blank">
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </a>
+                            <a href="export_jurnal_pdf.php<?= $_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : '' ?>" 
                                class="btn btn-danger" target="_blank">
                                 <i class="fas fa-file-pdf"></i> Export PDF
                             </a>
@@ -150,47 +144,52 @@ $content .= '
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped">
                             <thead>
-                                    <tr>
-                            <th>Tanggal</th>
-                            <th>Jam ke-</th> <!-- Kolom baru -->
-                            <th>Guru</th>
-                            <th>Kelas</th>
-                            <th>Mapel</th>
-                            <th>Materi</th>
-                            <th>Aksi</th>
-                             </tr>
-                        </thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Jam ke-</th>
+                                    <th>Guru</th>
+                                    <th>Kelas</th>
+                                    <th>Mapel</th>
+                                    <th>Materi</th>
+                                    <th>Aksi</th>
+                                </tr>
                             </thead>
                             <tbody>
-        ';
-
-if (count($jurnal_list) > 0) {
-    foreach ($jurnal_list as $jurnal) {
-        $content .= '
-                                <tr>
-                                    <td>' . format_tanggal_indonesia($jurnal['tanggal']) . '</td>
-                                    <td>' . ($jurnal['jam_ke'] ? $jurnal['jam_ke'] : '-') . '</td>
-                                    <td>' . htmlspecialchars($jurnal['nama_guru']) . '</td>
-                                    <td>' . htmlspecialchars($jurnal['nama_kelas']) . '</td>
-                                    <td>' . htmlspecialchars($jurnal['nama_mapel']) . '</td>
-                                    <td>' . htmlspecialchars($jurnal['materi']) . '</td>
-                                    <td>
-                                        <a href="detail_jurnal.php?id=' . $jurnal['id'] . '" class="btn btn-info btn-sm" target="_blank">
-                                            <i class="fas fa-eye"></i> Detail Absen
-                                        </a>
-                                    </td>
-                                </tr>
-        ';
-    }
-} else {
-    $content .= '
-                                <tr>
-                                    <td colspan="6" class="text-center">Tidak ada data jurnal.</td>
-                                </tr>
-        ';
-}
-
-$content .= '
+                                <?php if (count($jurnal_list) > 0): ?>
+                                    <?php foreach ($jurnal_list as $jurnal): ?>
+                                        <tr>
+                                            <td><?= format_tanggal_indonesia($jurnal['tanggal']) ?></td>
+                                            <td>
+                                                <?php
+                                                if (!empty($jurnal['jam_ke'])) {
+                                                    $jam_arr = explode(',', $jurnal['jam_ke']);
+                                                    sort($jam_arr, SORT_NUMERIC);
+                                                    if (count($jam_arr) > 1) {
+                                                        echo min($jam_arr) . '-' . max($jam_arr);
+                                                    } else {
+                                                        echo $jam_arr[0];
+                                                    }
+                                                } else {
+                                                    echo '-';
+                                                }
+                                                ?>
+                                            </td>
+                                            <td><?= htmlspecialchars($jurnal['nama_guru']) ?></td>
+                                            <td><?= htmlspecialchars($jurnal['nama_kelas']) ?></td>
+                                            <td><?= htmlspecialchars($jurnal['nama_mapel']) ?></td>
+                                            <td><?= htmlspecialchars($jurnal['materi']) ?></td>
+                                            <td>
+                                                <a href="detail_jurnal.php?id=<?= $jurnal['id'] ?>" class="btn btn-info btn-sm" target="_blank">
+                                                    <i class="fas fa-eye"></i> Detail Absen
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="7" class="text-center">Tidak ada data jurnal.</td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -199,20 +198,20 @@ $content .= '
         </div>
     </div>
 </div>
-';
-
+<?php
 if (isset($_SESSION['success'])) {
-    $content = '
+    echo '
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <strong>Berhasil!</strong> ' . $_SESSION['success'] . '
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    ' . $content;
+    ';
     unset($_SESSION['success']);
 }
 
 $title = "Rekap Jurnal";
+$content = ob_get_clean();
 include 'template.php';
 ?>
