@@ -31,7 +31,7 @@ $filter_mapel = $_GET['mapel_id'] ?? '';
 $filter_bulan = $_GET['bulan'] ?? date('Y-m');
 
 // Query data jurnal
-$sql = "SELECT j.id, j.tanggal, u.nama as nama_guru, k.nama_kelas, m.nama_mapel, j.materi
+$sql = "SELECT j.id, j.tanggal, j.jam_ke, u.nama as nama_guru, k.nama_kelas, m.nama_mapel, j.materi
         FROM jurnal j
         JOIN guru g ON j.guru_id = g.id
         JOIN users u ON g.user_id = u.id
@@ -65,7 +65,7 @@ $stmt->execute($params);
 $jurnal_list = $stmt->fetchAll();
 
 // Buat PDF
-$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+$pdf = new TCPDF('P', PDF_UNIT, 'A4', true, 'UTF-8', false); // Pastikan ukuran A4
 
 // Set document info
 $pdf->SetCreator(PDF_CREATOR);
@@ -77,13 +77,11 @@ $pdf->SetSubject('Rekap Jurnal + Absensi Siswa');
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
 
-// Set margins
+// Set margins (A4: 210mm x 297mm, margin 15mm cukup)
 $pdf->SetMargins(15, 15, 15);
 $pdf->SetAutoPageBreak(TRUE, 15);
 
 // Add a page
-$pdf->AddPage();
-
 $pdf->AddPage();
 $pdf->SetFont('freeserif', '', 10); // ✅ Set default font Unicode
 
@@ -128,11 +126,12 @@ $pdf->SetFont('freeserif', 'B', 10);
 $pdf->SetFillColor(230, 230, 230);
 
 $header = ['Tanggal', 'Jam ke-', 'Guru', 'Kelas', 'Mapel', 'Materi'];
-$w = [35, 15, 35, 30, 30, 45]; // Sesuaikan lebar
+// Total lebar A4 portrait efektif: 210mm - 15*2 = 180mm
+$w = [25, 15, 35, 25, 30, 50]; // Total: 180mm, pas untuk A4 portrait
 
 // Header tabel
 for ($i = 0; $i < count($header); $i++) {
-    $pdf->Cell($w[$i], 7, $header[$i], 1, 0, 'C', 1);
+    $pdf->Cell($w[$i], 8, $header[$i], 1, 0, 'C', 1);
 }
 $pdf->Ln();
 
@@ -140,11 +139,22 @@ $pdf->Ln();
 $pdf->SetFont('freeserif', '', 9);
 foreach ($jurnal_list as $jurnal) {
     $pdf->Cell($w[0], 6, format_tanggal_indonesia($jurnal['tanggal']), 1);
-    $pdf->Cell($w[1], 6, $jurnal['jam_ke'] ? $jurnal['jam_ke'] : '-', 1);
-    $pdf->Cell($w[1], 6, $jurnal['nama_guru'], 1);
-    $pdf->Cell($w[2], 6, $jurnal['nama_kelas'], 1);
-    $pdf->Cell($w[3], 6, $jurnal['nama_mapel'], 1);
-    $pdf->MultiCell($w[4], 6, $jurnal['materi'], 1, 'L');
+    // Tampilkan jam_ke dengan format lebih ramah (misal: 1,2,3 → 1-3)
+    $jam_ke = '-';
+    if (!empty($jurnal['jam_ke'])) {
+        $jam_arr = explode(',', $jurnal['jam_ke']);
+        sort($jam_arr, SORT_NUMERIC);
+        if (count($jam_arr) > 1) {
+            $jam_ke = min($jam_arr) . '-' . max($jam_arr);
+        } else {
+            $jam_ke = $jam_arr[0];
+        }
+    }
+    $pdf->Cell($w[1], 6, $jam_ke, 1);
+    $pdf->Cell($w[2], 6, $jurnal['nama_guru'], 1);
+    $pdf->Cell($w[3], 6, $jurnal['nama_kelas'], 1);
+    $pdf->Cell($w[4], 6, $jurnal['nama_mapel'], 1);
+    $pdf->Cell($w[5], 6, $jurnal['materi'], 1, 1, 'L');
 }
 $pdf->Ln(10);
 

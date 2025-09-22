@@ -26,12 +26,45 @@ ob_start();
             <div class="form-group mb-3">
                 <label>Tanggal</label>
                 <input type="date" name="tanggal" class="form-control" required>
-     </div>
+            </div>
             <div class="mb-3">
-                <label>Jam ke-</label>
-                <input type="number" name="jam_ke" class="form-control" min="1" max="10" placeholder="Contoh: 1, 2, 3...">
-                <small class="text-muted">Opsional. Isi jika ingin mencatat urutan jam pelajaran.</small>
-                </div>
+                <label><i class="fas fa-clock"></i> Jam ke-</label>
+                <select name="jam_ke[]" id="jam_ke_select" class="form-control" multiple size="5" style="height: auto;">
+                    <option value="1">Jam ke-1</option>
+                    <option value="2">Jam ke-2</option>
+                    <option value="3">Jam ke-3</option>
+                    <option value="4">Jam ke-4</option>
+                    <option value="5">Jam ke-5</option>
+                    <option value="6">Jam ke-6</option>
+                    <option value="7">Jam ke-7</option>
+                    <option value="8">Jam ke-8</option>
+                    <option value="9">Jam ke-9</option>
+                    <option value="10">Jam ke-10</option>
+                </select>
+                <style>
+                #jam_ke_select option:checked {
+                    background-color: #0d6efd;
+                    color: white;
+                }
+                </style>
+                <small class="text-muted d-block mt-1">
+                    ✅ Klik saja untuk pilih/deselect jam. Tidak perlu tekan Ctrl.
+                </small>
+            </div>
+            <script>
+            // Memudahkan multi-select jam_ke tanpa Ctrl
+            document.addEventListener('DOMContentLoaded', function() {
+                var jamSelect = document.getElementById('jam_ke_select');
+                if (jamSelect) {
+                    jamSelect.addEventListener('mousedown', function(e) {
+                        if (e.target.tagName === 'OPTION') {
+                            e.preventDefault();
+                            e.target.selected = !e.target.selected;
+                        }
+                    });
+                }
+            });
+            </script>
             <div class="form-group mb-3">
                 <label>Kelas & Mapel</label>
                 <select name="gmk_id" class="form-control" required onchange="loadSiswa(this.value)">
@@ -105,7 +138,7 @@ function loadSiswa(value) {
         });
 }
 
-// Tambahkan fungsi berikut agar tombol Pilih Semua bisa dipakai setelah AJAX
+// Fungsi global agar tombol Pilih Semua bisa dipakai setelah AJAX
 function selectAllHadir() {
     document.querySelectorAll("#daftar_siswa .absen-select").forEach(select => {
         select.value = "H";

@@ -33,7 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Simpan ke tabel jurnal
     // Ambil jam_ke (opsional)
-    $jam_ke = !empty($_POST['jam_ke']) ? (int)$_POST['jam_ke'] : null;
+    $jam_ke = null;
+    if (!empty($_POST['jam_ke']) && is_array($_POST['jam_ke'])) {
+    // Urutkan dan gabung jadi string: "3,4,5"
+    $jam_list = array_map('intval', $_POST['jam_ke']); // pastikan integer
+    sort($jam_list); // urutkan ascending
+    $jam_ke = implode(',', $jam_list); // jadi "3,4,5"
+}
 
     // Simpan ke tabel jurnal — SUDAH DITAMBAH kolom jam_ke
     $sql = "INSERT INTO jurnal (tanggal, jam_ke, guru_id, kelas_id, mapel_id, materi, catatan, 

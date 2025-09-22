@@ -46,7 +46,7 @@ $stmt->execute();
 $mapel_options = $stmt->fetchAll();
 
 // Query utama
-$sql = "SELECT j.id, j.tanggal, u.nama as nama_guru, k.nama_kelas, m.nama_mapel, j.materi
+$sql = "SELECT j.id, j.tanggal, j.jam_ke, u.nama as nama_guru, k.nama_kelas, m.nama_mapel, j.materi
         FROM jurnal j
         JOIN guru g ON j.guru_id = g.id
         JOIN users u ON g.user_id = u.id
