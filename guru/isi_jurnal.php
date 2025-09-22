@@ -25,8 +25,10 @@ ob_start();
         <form action="proses_simpan_jurnal.php" method="POST" enctype="multipart/form-data">
             <div class="form-group mb-3">
                 <label>Tanggal</label>
-                <input type="date" name="tanggal" class="form-control" required>
+                <input type="date" name="tanggal" id="input_tanggal" class="form-control" required>
+                <div id="tampilan_hari" class="mt-2 text-primary fw-bold"></div>
             </div>
+
             <div class="mb-3">
                 <label><i class="fas fa-clock"></i> Jam ke-</label>
                 <select name="jam_ke[]" id="jam_ke_select" class="form-control" multiple size="5" style="height: auto;">
@@ -51,20 +53,7 @@ ob_start();
                     ✅ Klik saja untuk pilih/deselect jam. Tidak perlu tekan Ctrl.
                 </small>
             </div>
-            <script>
-            // Memudahkan multi-select jam_ke tanpa Ctrl
-            document.addEventListener('DOMContentLoaded', function() {
-                var jamSelect = document.getElementById('jam_ke_select');
-                if (jamSelect) {
-                    jamSelect.addEventListener('mousedown', function(e) {
-                        if (e.target.tagName === 'OPTION') {
-                            e.preventDefault();
-                            e.target.selected = !e.target.selected;
-                        }
-                    });
-                }
-            });
-            </script>
+
             <div class="form-group mb-3">
                 <label>Kelas & Mapel</label>
                 <select name="gmk_id" class="form-control" required onchange="loadSiswa(this.value)">
@@ -125,6 +114,31 @@ ob_start();
     }
 </style>
 <script>
+document.getElementById('input_tanggal').addEventListener('change', function() {
+    const tanggal = this.value;
+    if (tanggal) {
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const d = new Date(tanggal);
+        const hari = days[d.getDay()];
+        document.getElementById('tampilan_hari').innerText = '📅 Hari: ' + hari;
+    } else {
+        document.getElementById('tampilan_hari').innerText = '';
+    }
+});
+
+// Memudahkan multi-select jam_ke tanpa Ctrl
+document.addEventListener('DOMContentLoaded', function() {
+    var jamSelect = document.getElementById('jam_ke_select');
+    if (jamSelect) {
+        jamSelect.addEventListener('mousedown', function(e) {
+            if (e.target.tagName === 'OPTION') {
+                e.preventDefault();
+                e.target.selected = !e.target.selected;
+            }
+        });
+    }
+});
+
 function loadSiswa(value) {
     if (!value) {
         document.getElementById("daftar_siswa").innerHTML = '<div class="text-info">Pilih kelas terlebih dahulu</div>';
