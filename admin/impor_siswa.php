@@ -49,6 +49,12 @@ $content = '
 </div>
 ';
 
+// HANYA tampilkan notifikasi jika ada — tanpa override
+if (isset($_SESSION['success'])) {
+    echo $_SESSION['success']; // Langsung tampilkan — karena sudah dalam format HTML
+    unset($_SESSION['success']);
+}
+
 $title = "Impor Data Siswa";
 include 'template.php';
 ?>

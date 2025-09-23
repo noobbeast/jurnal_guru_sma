@@ -12,7 +12,13 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!isset($_FILES['file_excel']) || $_FILES['file_excel']['error'] != 0) {
-        $_SESSION['success'] = "Error: File tidak diupload!";
+        $_SESSION['success'] = '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h5><i class="icon fas fa-ban"></i> Error!</h5>
+            ❌ File tidak diupload!
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>';
         header("Location: impor_siswa.php");
         exit;
     }
@@ -20,7 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $file = $_FILES['file_excel'];
     $allowed_types = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
     if (!in_array($file['type'], $allowed_types)) {
-        $_SESSION['success'] = "Error: Hanya file .xlsx yang diizinkan!";
+        $_SESSION['success'] = '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h5><i class="icon fas fa-ban"></i> Error!</h5>
+            ❌ Hanya file .xlsx yang diizinkan!
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>';
         header("Location: impor_siswa.php");
         exit;
     }
@@ -34,7 +46,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Ambil header (baris pertama)
         $header = array_shift($rows);
         if ($header[0] != 'NIS' || $header[1] != 'Nama' || $header[2] != 'Kelas') {
-            $_SESSION['success'] = "Error: Format kolom salah! Harus: NIS, Nama, Kelas";
+            $_SESSION['success'] = '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                ❌ Format kolom salah! Harus: NIS, Nama, Kelas
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>';
             header("Location: impor_siswa.php");
             exit;
         }
@@ -52,7 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $log_error = [];
 
         foreach ($rows as $index => $row) {
-            if (empty($row[0]) && empty($row[1]) && empty($row[2])) continue; // Skip baris kosong
+            // Skip baris kosong
+            if (empty($row[0]) && empty($row[1]) && empty($row[2])) continue;
 
             $nis = trim($row[0] ?? '');
             $nama = trim($row[1] ?? '');
@@ -61,13 +80,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Validasi
             if (empty($nis) || empty($nama) || empty($nama_kelas)) {
                 $gagal++;
-                $log_error[] = "Baris " . ($index + 2) . ": Data tidak lengkap";
+                $log_error[] = "Baris " . ($index + 2) . ": Data tidak lengkap (NIS/Nama/Kelas kosong)";
                 continue;
             }
 
             if (!isset($kelas_valid[$nama_kelas])) {
                 $gagal++;
-                $log_error[] = "Baris " . ($index + 2) . ": Kelas '$nama_kelas' tidak ditemukan";
+                $log_error[] = "Baris " . ($index + 2) . ": Kelas '$nama_kelas' tidak ditemukan di database";
                 continue;
             }
 
@@ -78,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->execute([$nis]);
             if ($stmt->fetch()) {
                 $gagal++;
-                $log_error[] = "Baris " . ($index + 2) . ": NIS '$nis' sudah ada";
+                $log_error[] = "Baris " . ($index + 2) . ": NIS '$nis' sudah terdaftar";
                 continue;
             }
 
@@ -88,13 +107,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $sukses++;
         }
 
-        $_SESSION['success'] = "✅ Impor selesai! Berhasil: $sukses, Gagal: $gagal";
-        if (!empty($log_error)) {
-            $_SESSION['success'] .= "<br><small>" . implode('<br>', $log_error) . "</small>";
+        // Set pesan sukses/error
+        if ($gagal == 0 && $sukses > 0) {
+            $_SESSION['success'] = '<div class="alert alert-success alert-dismissible fade show" role="alert">
+                <h5><i class="icon fas fa-check"></i> Sukses!</h5>
+                ✅ ' . $sukses . ' data siswa berhasil diimpor.
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>';
+        } elseif ($sukses > 0 && $gagal > 0) {
+            $pesan_error = !empty($log_error) ? '<ul class="mb-0">' . implode('', array_map(fn($e) => '<li>' . htmlspecialchars($e) . '</li>', $log_error)) . '</ul>' : '';
+            $_SESSION['success'] = '<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <h5><i class="icon fas fa-exclamation-triangle"></i> Sebagian Berhasil!</h5>
+                ✅ Berhasil: ' . $sukses . ' data<br>
+                ❌ Gagal: ' . $gagal . ' data<br>
+                ' . $pesan_error . '
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>';
+        } else {
+            $pesan_error = !empty($log_error) ? '<ul class="mb-0">' . implode('', array_map(fn($e) => '<li>' . htmlspecialchars($e) . '</li>', $log_error)) . '</ul>' : '';
+            $_SESSION['success'] = '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <h5><i class="icon fas fa-ban"></i> Gagal!</h5>
+                ❌ Tidak ada data yang berhasil diimpor.<br>
+                ' . $pesan_error . '
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>';
         }
 
     } catch (Exception $e) {
-        $_SESSION['success'] = "Error: " . $e->getMessage();
+        $_SESSION['success'] = '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h5><i class="icon fas fa-ban"></i> Error!</h5>
+            ❌ Terjadi kesalahan: ' . htmlspecialchars($e->getMessage()) . '
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>';
     }
 
     header("Location: impor_siswa.php");
