@@ -179,9 +179,17 @@ ob_start();
                                             <td><?= htmlspecialchars($jurnal['nama_mapel']) ?></td>
                                             <td><?= htmlspecialchars($jurnal['materi']) ?></td>
                                             <td>
-                                                <a href="detail_jurnal.php?id=<?= $jurnal['id'] ?>" class="btn btn-info btn-sm" target="_blank">
-                                                    <i class="fas fa-eye"></i> Detail Absen
-                                                </a>
+                                                <div class="btn-group" role="group">
+                                                    <a href="edit_jurnal.php?id=<?= $jurnal['id'] ?>" class="btn btn-warning btn-sm">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </a>
+                                                    <a href="proses_hapus_jurnal.php?id=<?= $jurnal['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus jurnal ini?')">
+                                                        <i class="fas fa-trash"></i> Hapus
+                                                    </a>
+                                                    <a href="detail_jurnal.php?id=<?= $jurnal['id'] ?>" class="btn btn-info btn-sm" target="_blank">
+                                                        <i class="fas fa-eye"></i> Detail Absen
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
