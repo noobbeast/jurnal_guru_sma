@@ -8,6 +8,9 @@ if (!isset($title)) $title = "Dashboard Admin";
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?> - Jurnal Mengajar SMA</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -16,10 +19,39 @@ if (!isset($title)) $title = "Dashboard Admin";
 
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-
+  
     <style>
         .main-sidebar {
             transition: all 0.3s;
+        }
+        
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        body.dark-mode .content-wrapper {
+            background-color: #1a1a1a;
+        }
+        
+        body.dark-mode .card {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+        
+        body.dark-mode .card-header {
+            background-color: #343a40;
+            border-bottom: 1px solid #454d55;
+        }
+        
+        body.dark-mode .table {
+            color: #ffffff;
+        }
+        
+        body.dark-mode .table td,
+        body.dark-mode .table th {
+            border-color: #454d55;
         }
     </style>
 </head>
