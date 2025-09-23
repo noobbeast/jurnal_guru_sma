@@ -6,83 +6,54 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
 }
 include '../koneksi.php';
 
-// Ambil daftar kelas
+// Ambil daftar kelas untuk filter & dropdown
 $sql_kelas = "SELECT id, nama_kelas FROM kelas ORDER BY nama_kelas";
 $stmt = $conn->prepare($sql_kelas);
 $stmt->execute();
-$kelas_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$kelas_list = $stmt->fetchAll();
 
-// Ambil semua siswa
-$sql = "SELECT s.id, s.nis, s.nama, s.kelas_id, k.nama_kelas 
+// Ambil filter & pagination
+$filter_kelas = $_GET['filter_kelas'] ?? '';
+$page = $_GET['page'] ?? 1;
+$limit = 50;
+$offset = ($page - 1) * $limit;
+
+// Query total data (untuk pagination)
+$sql_total = "SELECT COUNT(*) FROM siswa s WHERE 1=1";
+$params_total = [];
+
+if ($filter_kelas) {
+    $sql_total .= " AND s.kelas_id = ?";
+    $params_total[] = $filter_kelas;
+}
+
+$stmt_total = $conn->prepare($sql_total);
+$stmt_total->execute($params_total);
+$total_data = $stmt_total->fetchColumn();
+$total_pages = ceil($total_data / $limit);
+
+// Query data siswa dengan limit & offset
+$sql = "SELECT s.id, s.nis, s.nama, k.nama_kelas 
         FROM siswa s 
         JOIN kelas k ON s.kelas_id = k.id 
-        ORDER BY k.nama_kelas, s.nama";
+        WHERE 1=1";
+
+$params = [];
+
+if ($filter_kelas) {
+    $sql .= " AND s.kelas_id = ?";
+    $params[] = $filter_kelas;
+}
+
+$sql .= " ORDER BY k.nama_kelas, s.nama LIMIT ? OFFSET ?";
+$params[] = $limit;
+$params[] = $offset;
+
 $stmt = $conn->prepare($sql);
-$stmt->execute();
-$siswa_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt->execute($params);
+$siswa_list = $stmt->fetchAll();
 
-// Proses tambah/edit siswa
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['tambah'])) {
-        $nis = $_POST['nis'] ?? '';
-        $nama = $_POST['nama'] ?? '';
-        $kelas_id = $_POST['kelas_id'] ?? null;
-
-        if (empty($nis) || empty($nama) || empty($kelas_id)) {
-            $_SESSION['success'] = "Error: Semua field wajib diisi!";
-            header("Location: data_siswa.php");
-            exit;
-        }
-
-        $sql = "INSERT INTO siswa (nis, nama, kelas_id) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$nis, $nama, $kelas_id]);
-
-        $_SESSION['success'] = "Siswa berhasil ditambahkan!";
-        header("Location: data_siswa.php");
-        exit;
-    }
-
-    if (isset($_POST['edit'])) {
-        $id = $_POST['id'] ?? null;
-        $nis = $_POST['nis'] ?? '';
-        $nama = $_POST['nama'] ?? '';
-        $kelas_id = $_POST['kelas_id'] ?? null;
-
-        if (!$id || empty($nis) || empty($nama) || empty($kelas_id)) {
-            $_SESSION['success'] = "Error: Data tidak lengkap!";
-            header("Location: data_siswa.php");
-            exit;
-        }
-
-        $sql = "UPDATE siswa SET nis = ?, nama = ?, kelas_id = ? WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$nis, $nama, $kelas_id, $id]);
-
-        $_SESSION['success'] = "Data siswa berhasil diubah!";
-        header("Location: data_siswa.php");
-        exit;
-    }
-}
-
-if (isset($_GET['hapus'])) {
-    $id = $_GET['hapus'];
-
-    $sql = "DELETE FROM absensi WHERE siswa_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$id]);
-
-    $sql = "DELETE FROM siswa WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$id]);
-
-    $_SESSION['success'] = "Siswa berhasil dihapus!";
-    header("Location: data_siswa.php");
-    exit;
-}
-
-ob_start();
-?>
+$content = '
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -95,88 +66,168 @@ ob_start();
                         </button>
                     </div>
                 </div>
-                <div class="card-tools">
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTambah">
-        <i class="fas fa-plus"></i> Tambah Siswa
-    </button>
-    <a href="impor_siswa.php" class="btn btn-success ml-2">
-        <i class="fas fa-file-excel"></i> Impor Excel
-    </a>
-</div>
-                <div class="card-body table-responsive p-0">
-                    <table class="table table-hover table-striped text-nowrap">
-                        <thead>
-                            <tr>
-                                <th>NIS</th>
-                                <th>Nama</th>
-                                <th>Kelas</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (count($siswa_list) > 0): ?>
-                                <?php foreach ($siswa_list as $siswa): ?>
-                                    <tr>
-                                        <td><?= htmlspecialchars($siswa['nis']) ?></td>
-                                        <td><?= htmlspecialchars($siswa['nama']) ?></td>
-                                        <td><?= htmlspecialchars($siswa['nama_kelas']) ?></td>
-                                        <td>
-                                            <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalEdit<?= $siswa['id'] ?>">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                            <a href="data_siswa.php?hapus=<?= $siswa['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus siswa ini?')">
-                                                <i class="fas fa-trash"></i> Hapus
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <!-- Modal Edit -->
-                                    <div class="modal fade" id="modalEdit<?= $siswa['id'] ?>">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <form method="POST" action="data_siswa.php">
-                                                    <input type="hidden" name="id" value="<?= $siswa['id'] ?>">
-                                                    <div class="modal-header">
-                                                        <h4 class="modal-title">Edit Siswa</h4>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
+                <div class="card-body">
+                    <!-- Form Filter -->
+                    <form method="GET" class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Filter Kelas</label>
+                            <select name="filter_kelas" class="form-control">
+                                <option value="">Semua Kelas</option>
+        ';
+
+foreach ($kelas_list as $kelas) {
+    $selected = ($kelas['id'] == $filter_kelas) ? 'selected' : '';
+    $content .= '<option value="' . $kelas['id'] . '" ' . $selected . '>' . htmlspecialchars($kelas['nama_kelas']) . '</option>';
+}
+
+$content .= '
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">Terapkan Filter</button>
+                            <a href="data_siswa.php" class="btn btn-secondary ms-2">Reset</a>
+                        </div>
+                    </form>
+
+                    <!-- Info Pagination -->
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            Menampilkan ' . (($offset + 1) > $total_data ? $total_data : ($offset + 1)) . ' - ' . min($offset + $limit, $total_data) . ' dari ' . $total_data . ' data
+                        </small>
+                    </div>
+
+                    <!-- Tabel Data -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead>
+                                <tr>
+                                    <th>NIS</th>
+                                    <th>Nama</th>
+                                    <th>Kelas</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+        ';
+
+if (count($siswa_list) > 0) {
+    foreach ($siswa_list as $siswa) {
+        $content .= '
+                                <tr>
+                                    <td>' . htmlspecialchars($siswa['nis']) . '</td>
+                                    <td>' . htmlspecialchars($siswa['nama']) . '</td>
+                                    <td>' . htmlspecialchars($siswa['nama_kelas']) . '</td>
+                                    <td>
+                                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalEdit' . $siswa['id'] . '">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <a href="proses_siswa.php?hapus=' . $siswa['id'] . '" class="btn btn-danger btn-sm" onclick="return confirm(\'Yakin hapus siswa ini?\')">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </a>
+                                    </td>
+                                </tr>
+
+                                <!-- Modal Edit -->
+                                <div class="modal fade" id="modalEdit' . $siswa['id'] . '">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form method="POST" action="proses_siswa.php">
+                                                <input type="hidden" name="id" value="' . $siswa['id'] . '">
+                                                <div class="modal-header">
+                                                    <h4 class="modal-title">Edit Siswa</h4>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="form-group">
+                                                        <label>NIS</label>
+                                                        <input type="text" name="nis" class="form-control" value="' . htmlspecialchars($siswa['nis']) . '" required>
                                                     </div>
-                                                    <div class="modal-body">
-                                                        <div class="form-group">
-                                                            <label>NIS</label>
-                                                            <input type="text" name="nis" class="form-control" value="<?= htmlspecialchars($siswa['nis']) ?>" required>
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label>Nama</label>
-                                                            <input type="text" name="nama" class="form-control" value="<?= htmlspecialchars($siswa['nama']) ?>" required>
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label>Kelas</label>
-                                                            <select name="kelas_id" class="form-control" required>
-                                                                <?php foreach ($kelas_list as $kelas): ?>
-                                                                    <option value="<?= $kelas['id'] ?>" <?= ($kelas['id'] == $siswa['kelas_id']) ? 'selected' : '' ?>>
-                                                                        <?= htmlspecialchars($kelas['nama_kelas']) ?>
-                                                                    </option>
-                                                                <?php endforeach; ?>
-                                                            </select>
-                                                        </div>
+                                                    <div class="form-group">
+                                                        <label>Nama</label>
+                                                        <input type="text" name="nama" class="form-control" value="' . htmlspecialchars($siswa['nama']) . '" required>
                                                     </div>
-                                                    <div class="modal-footer justify-content-between">
-                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
-                                                        <button type="submit" name="edit" class="btn btn-primary">Simpan</button>
+                                                    <div class="form-group">
+                                                        <label>Kelas</label>
+                                                        <select name="kelas_id" class="form-control" required>
+        ';
+
+        foreach ($kelas_list as $kelas) {
+            $selected = ($kelas['id'] == $siswa['kelas_id']) ? 'selected' : '';
+            $content .= '<option value="' . $kelas['id'] . '" ' . $selected . '>' . htmlspecialchars($kelas['nama_kelas']) . '</option>';
+        }
+
+        $content .= '
+                                                        </select>
                                                     </div>
-                                                </form>
-                                            </div>
+                                                </div>
+                                                <div class="modal-footer justify-content-between">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
+                                                    <button type="submit" name="edit" class="btn btn-primary">Simpan</button>
+                                                </div>
+                                            </form>
                                         </div>
                                     </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
+                                </div>
+        ';
+    }
+} else {
+    $content .= '
                                 <tr>
-                                    <td colspan="4" class="text-center">Belum ada data siswa.</td>
+                                    <td colspan="4" class="text-center">Tidak ada data siswa.</td>
                                 </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+        ';
+}
+
+$content .= '
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Pagination">
+                        <ul class="pagination justify-content-center">
+        ';
+
+// Tombol Previous
+if ($page > 1) {
+    $prev_page = $page - 1;
+    $content .= '<li class="page-item">
+                    <a class="page-link" href="?page=' . $prev_page . ($filter_kelas ? '&filter_kelas=' . $filter_kelas : '') . '" tabindex="-1">Previous</a>
+                 </li>';
+} else {
+    $content .= '<li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1">Previous</a>
+                 </li>';
+}
+
+// Nomor halaman (maks 5 halaman ditampilkan)
+$start_page = max(1, $page - 2);
+$end_page = min($total_pages, $page + 2);
+
+for ($i = $start_page; $i <= $end_page; $i++) {
+    $active = ($i == $page) ? 'active' : '';
+    $content .= '<li class="page-item ' . $active . '">
+                    <a class="page-link" href="?page=' . $i . ($filter_kelas ? '&filter_kelas=' . $filter_kelas : '') . '">' . $i . '</a>
+                 </li>';
+}
+
+// Tombol Next
+if ($page < $total_pages) {
+    $next_page = $page + 1;
+    $content .= '<li class="page-item">
+                    <a class="page-link" href="?page=' . $next_page . ($filter_kelas ? '&filter_kelas=' . $filter_kelas : '') . '">Next</a>
+                 </li>';
+} else {
+    $content .= '<li class="page-item disabled">
+                    <a class="page-link" href="#">Next</a>
+                 </li>';
+}
+
+$content .= '
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -187,7 +238,7 @@ ob_start();
 <div class="modal fade" id="modalTambah">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="data_siswa.php">
+            <form method="POST" action="proses_siswa.php">
                 <div class="modal-header">
                     <h4 class="modal-title">Tambah Siswa Baru</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -207,9 +258,13 @@ ob_start();
                         <label>Kelas</label>
                         <select name="kelas_id" class="form-control" required>
                             <option value="">-- Pilih Kelas --</option>
-                            <?php foreach ($kelas_list as $kelas): ?>
-                                <option value="<?= $kelas['id'] ?>"><?= htmlspecialchars($kelas['nama_kelas']) ?></option>
-                            <?php endforeach; ?>
+        ';
+
+foreach ($kelas_list as $kelas) {
+    $content .= '<option value="' . $kelas['id'] . '">' . htmlspecialchars($kelas['nama_kelas']) . '</option>';
+}
+
+$content .= '
                         </select>
                     </div>
                 </div>
@@ -221,19 +276,13 @@ ob_start();
         </div>
     </div>
 </div>
-<?php
+';
+
 if (isset($_SESSION['success'])) {
-    $content = '
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        ' . $_SESSION['success'] . '
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    ' . $content;
+    echo $_SESSION['success'];
     unset($_SESSION['success']);
 }
+
 $title = "Data Siswa";
-$content = ob_get_clean();
 include 'template.php';
 ?>
