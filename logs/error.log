@@ -1,0 +1,4 @@
+[2025-09-24 04:37:01] Error: session_start(): Ignoring session_start() because a session is already active in C:\xampp\htdocs\jurnal_guru_sma\admin\template.php on line 2
+[2025-09-24 04:37:08] Error: session_start(): Ignoring session_start() because a session is already active in C:\xampp\htdocs\jurnal_guru_sma\admin\template.php on line 2
+[2025-09-24 04:37:09] Error: session_start(): Ignoring session_start() because a session is already active in C:\xampp\htdocs\jurnal_guru_sma\admin\template.php on line 2
+[2025-09-24 04:37:29] Error: session_start(): Ignoring session_start() because a session is already active in C:\xampp\htdocs\jurnal_guru_sma\admin\template.php on line 2

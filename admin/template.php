@@ -135,6 +135,12 @@ if (!isset($title)) $title = "Dashboard Admin";
                                 <p>Rekap Jurnal</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="rekap_absensi.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'rekap_absensi.php' ? 'active' : '' ?>">
+                                <i class="nav-icon fas fa-user-check"></i>
+                                <p>Rekap Absensi Siswa</p>
+                            </a>
+                        </li>
                     </ul>
                 </nav>
             </div>
