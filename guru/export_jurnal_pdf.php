@@ -1,6 +1,18 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+function format_tanggal_indonesia($tanggal_mysql) {
+    $hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    $bulan = [
+        '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+        '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+        '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+    ];
+    $timestamp = strtotime($tanggal_mysql);
+    $nama_hari = $hari[date('w', $timestamp)];
+    $tanggal = date('j', $timestamp);
+    $nama_bulan = $bulan[date('m', $timestamp)];
+    $tahun = date('Y', $timestamp);
+    return "$nama_hari, $tanggal $nama_bulan $tahun";
+}
 
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'guru') {
@@ -11,12 +23,9 @@ include '../koneksi.php';
 require_once '../vendor/tcpdf/tcpdf.php';
 
 $guru_id = $_SESSION['guru_id'];
-
-// Ambil filter
 $filter_kelas = $_GET['kelas_id'] ?? '';
 
-// Query data jurnal
-$sql = "SELECT j.tanggal, j.jam_ke, k.nama_kelas, m.nama_mapel, j.materi
+$sql = "SELECT j.tanggal, j.jam_ke, k.nama_kelas, m.nama_mapel, j.materi, j.foto_kegiatan
         FROM jurnal j
         JOIN kelas k ON j.kelas_id = k.id
         JOIN mata_pelajaran m ON j.mapel_id = m.id
@@ -35,32 +44,28 @@ $stmt = $conn->prepare($sql);
 $stmt->execute($params);
 $jurnal_list = $stmt->fetchAll();
 
-// Buat PDF
-$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+$pdf = new TCPDF('L', PDF_UNIT, 'A4', true, 'UTF-8', false); // Landscape orientation
 
-$pdf->SetCreator(PDF_CREATOR);
+$pdf->SetCreator('Jurnal Mengajar SMA');
 $pdf->SetAuthor($_SESSION['nama']);
 $pdf->SetTitle('Rekap Jurnal Mengajar');
-$pdf->SetSubject('Jurnal Mengajar');
-
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
-$pdf->SetMargins(15, 15, 15);
-$pdf->SetAutoPageBreak(TRUE, 15);
+$pdf->SetMargins(10, 10, 10);
+$pdf->SetAutoPageBreak(TRUE, 10);
 
 $pdf->AddPage();
-$pdf->SetFont('freeserif', '', 10);
+$pdf->SetFont('dejavusans', '', 10);
 
 // Judul
-$pdf->SetFont('freeserif', 'B', 16);
+$pdf->SetFont('dejavusans', 'B', 16);
 $pdf->Cell(0, 10, 'REKAP JURNAL MENGAJAR', 0, 1, 'C');
 $pdf->Ln(5);
 
 // Info guru
-$pdf->SetFont('freeserif', '', 12);
+$pdf->SetFont('dejavusans', '', 12);
 $pdf->Cell(0, 6, 'Guru: ' . $_SESSION['nama'], 0, 1);
 
-// Filter
 if ($filter_kelas) {
     $stmt_kelas = $conn->prepare("SELECT nama_kelas FROM kelas WHERE id = ?");
     $stmt_kelas->execute([$filter_kelas]);
@@ -70,51 +75,56 @@ if ($filter_kelas) {
 
 $pdf->Ln(5);
 
-// Tabel
-$pdf->SetFont('freeserif', 'B', 10);
-$pdf->SetFillColor(230, 230, 230);
+// Tabel dengan lebar kolom yang disesuaikan
+$header = ['No', 'Tanggal', 'Jam', 'Kelas', 'Mapel', 'Materi', 'Foto'];
+$w = [15, 40, 12, 20, 30, 65, 30]; // Total width ≈ 190mm (sesuai landscape A4)
 
-$header = ['Tanggal', 'Jam ke-', 'Kelas', 'Mapel', 'Materi'];
-$w = [35, 15, 25, 30, 60]; // Lebar kolom
-
+$pdf->SetFont('dejavusans', 'B', 9);
 // Header tabel
-for ($i = 0; $i < count($header); $i++) {
-    $pdf->Cell($w[$i], 7, $header[$i], 1, 0, 'C', 1);
+foreach ($header as $key => $value) {
+    $pdf->Cell($w[$key], 7, $value, 1, 0, 'C');
 }
 $pdf->Ln();
 
 // Isi tabel
-$pdf->SetFont('freeserif', '', 9);
+$pdf->SetFont('dejavusans', '', 8);
+$no = 1;
 foreach ($jurnal_list as $jurnal) {
-    $pdf->Cell($w[0], 6, format_tanggal_indonesia($jurnal['tanggal']), 1);
-    $pdf->Cell($w[1], 6, $jurnal['jam_ke'] ? $jurnal['jam_ke'] : '-', 1);
-    $pdf->Cell($w[2], 6, $jurnal['nama_kelas'], 1);
-    $pdf->Cell($w[3], 6, $jurnal['nama_mapel'], 1);
-    $pdf->MultiCell($w[4], 6, $jurnal['materi'], 1, 'L');
+    // Kolom No
+    $pdf->Cell($w[0], 15, $no++, 1, 0, 'C');
+    
+    // Kolom Tanggal
+    $pdf->Cell($w[1], 15, format_tanggal_indonesia($jurnal['tanggal']), 1, 0, 'C');
+    
+    // Kolom Jam
+    $pdf->Cell($w[2], 15, $jurnal['jam_ke'] ?: '-', 1, 0, 'C');
+    
+    // Kolom Kelas
+    $pdf->Cell($w[3], 15, $jurnal['nama_kelas'], 1, 0, 'C');
+    
+    // Kolom Mapel
+    $pdf->Cell($w[4], 15, $jurnal['nama_mapel'], 1, 0, 'C');
+    
+    // Kolom Materi (dipotong jika terlalu panjang)
+    $materi = substr($jurnal['materi'], 0, 80) . (strlen($jurnal['materi']) > 80 ? '...' : '');
+    $pdf->Cell($w[5], 15, $materi, 1, 0, 'L');
+    
+    // Kolom Foto
+    $foto_path = '../uploads/' . $jurnal['foto_kegiatan'];
+    if ($jurnal['foto_kegiatan'] && file_exists($foto_path)) {
+        $pdf->Image($foto_path, $pdf->GetX() + 1, $pdf->GetY() + 1, 18, 13, '', '', '', false, 300, '', false, false, 0, false, false, false);
+        $pdf->Cell($w[6], 15, '', 1, 0, 'C');
+    } else {
+        $pdf->Cell($w[6], 15, 'Tidak ada', 1, 0, 'C');
+    }
+    
+    $pdf->Ln();
 }
-$pdf->Ln(10);
 
-// Total
-$pdf->SetFont('freeserif', 'B', 11);
+$pdf->Ln(5);
+$pdf->SetFont('dejavusans', 'B', 10);
 $pdf->Cell(0, 8, 'Total Jurnal: ' . count($jurnal_list), 0, 1, 'R');
 
-// Output
-$filename = 'Jurnal_Saya_' . date('Ymd') . '.pdf';
+$filename = 'Jurnal_Saya_' . date('Ymd_His') . '.pdf';
 $pdf->Output($filename, 'D');
-
-// Fungsi format tanggal
-function format_tanggal_indonesia($tanggal_mysql) {
-    $hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    $bulan = [
-        '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
-        '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
-        '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
-    ];
-    $timestamp = strtotime($tanggal_mysql);
-    $nama_hari = $hari[date('w', $timestamp)];
-    $tanggal = date('j', $timestamp);
-    $nama_bulan = $bulan[date('m', $timestamp)];
-    $tahun = date('Y', $timestamp);
-    return "$nama_hari, $tanggal $nama_bulan $tahun";
-}
 ?>
