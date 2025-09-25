@@ -26,7 +26,7 @@ if (isset($_GET['kelas_id'])) {
             echo '<option value="H">Hadir</option>';
             echo '<option value="S">Sakit</option>';
             echo '<option value="I">Izin</option>';
-            echo '<option value="A">Alfa</option>';
+            echo '<option value="A">Alpa</option>';
             echo '</select>';
             echo '</div>';
         }
