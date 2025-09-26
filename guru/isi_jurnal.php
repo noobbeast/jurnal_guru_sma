@@ -6,6 +6,30 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'guru') {
 }
 include '../koneksi.php';
 
+// Fungsi auto-detect tahun ajaran & semester
+function getTahunAjaranSemesterOtomatis() {
+    $bulan = date('n'); // 1-12
+    $tahun = date('Y');
+    $tanggal_sekarang = date('d/m/Y');
+    
+    if ($bulan >= 7) {
+        return [
+            'tahun_ajaran' => "$tahun/" . ($tahun + 1),
+            'semester' => 'Ganjil',
+            'tanggal' => $tanggal_sekarang
+        ];
+    } else {
+        return [
+            'tahun_ajaran' => ($tahun - 1) . "/$tahun",
+            'semester' => 'Genap',
+            'tanggal' => $tanggal_sekarang
+        ];
+    }
+}
+
+// Dapatkan setting otomatis
+$setting_otomatis = getTahunAjaranSemesterOtomatis();
+
 $sql_kelas_mapel = "SELECT gmk.id, k.nama_kelas, m.nama_mapel, m.id as mapel_id, k.id as kelas_id
                     FROM guru_mapel_kelas gmk
                     JOIN kelas k ON gmk.kelas_id = k.id
@@ -22,7 +46,20 @@ ob_start();
         <h3 class="card-title">📝 Isi Jurnal Mengajar Baru</h3>
     </div>
     <div class="card-body">
+        <!-- Tampilkan info tahun ajaran otomatis -->
+        <div class="alert alert-info mb-3">
+            <i class="fas fa-calendar-alt"></i> 
+            <strong>Tahun Ajaran Otomatis:</strong> <?= htmlspecialchars($setting_otomatis['tahun_ajaran']) ?> | 
+            <strong>Semester:</strong> <?= htmlspecialchars($setting_otomatis['semester']) ?>
+            <br>
+            <small class="text-muted">Berdasarkan tanggal hari ini: <?= $setting_otomatis['tanggal'] ?></small>
+        </div>
+
         <form action="proses_simpan_jurnal.php" method="POST" enctype="multipart/form-data">
+            <!-- Hidden input untuk tahun ajaran dan semester -->
+            <input type="hidden" name="tahun_ajaran" value="<?= htmlspecialchars($setting_otomatis['tahun_ajaran']) ?>">
+            <input type="hidden" name="semester" value="<?= htmlspecialchars($setting_otomatis['semester']) ?>">
+            
             <div class="form-group mb-3">
                 <label>Tanggal</label>
                 <input type="date" name="tanggal" id="input_tanggal" class="form-control" required>

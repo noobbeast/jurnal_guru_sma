@@ -141,6 +141,12 @@ if (!isset($title)) $title = "Dashboard Admin";
                                 <p>Rekap Absensi Siswa</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                                <a href="setting_tahun_ajaran.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'setting_tahun_ajaran.php' ? 'active' : '' ?>">
+                                <i class="nav-icon fas fa-cog"></i>
+                                    <p>Setting Tahun Ajaran</p>
+                        </a>
+                        </li>
                     </ul>
                 </nav>
             </div>
